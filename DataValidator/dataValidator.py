@@ -1,24 +1,39 @@
 import pandas as pd
+from logging_config import get_logger
+
+logger = get_logger(__name__)
 
 def clean_data(data):
     data = data.copy()
 
-    print(data.columns)
-    print(type(data.columns))
+    logger.debug("Raw columns: %s", data.columns)
+    logger.debug("Raw columns type: %s", type(data.columns))
 
     # 1. Reset index
     data = data.reset_index()
 
-    # we need to normalize the columns
-    # if index is datetime, we need to reset the index and make it a column
-    # if the columns are a multi-index, we need to flatten them and standardize the column names, we will take the last level of the multi-index as the column name, this is because some data sources have a multi-index with ticker and date, and we want to keep the date as a column and not have it as an index, we also want to standardize the column names to be lowercase and replace spaces with underscores for consistency across different data sources
+    # If yfinance returns a datetime index, reset_index may create a column named Date or index.
+    if 'index' in data.columns and 'date' not in data.columns:
+        data = data.rename(columns={'index': 'date'})
 
+    # Flatten tuple columns from MultiIndex or mixed-type columns.
+    def flatten_column(col):
+        if isinstance(col, tuple):
+            for candidate in col:
+                if isinstance(candidate, str) and candidate.lower().replace(" ", "_") in [
+                    'open', 'high', 'low', 'close', 'volume', 'adj_close', 'date'
+                ]:
+                    return candidate
+            return col[0]
+        return col
 
-    if isinstance(data.columns, pd.MultiIndex):
-        data.columns = data.columns.get_level_values(0)  # get the last level of the multi-index if it exists
+    data.columns = [flatten_column(col) for col in data.columns]
 
     # 2. Standardize columns
-    data.columns = [col.lower().replace(" ", "_") for col in data.columns]
+    data.columns = [str(col).lower().replace(" ", "_") for col in data.columns]
+
+    if 'adj_close' in data.columns and 'close' not in data.columns:
+        data = data.rename(columns={'adj_close': 'close'})
 
     # 3. Ensure required columns
     required_columns = ['date', 'open', 'high', 'low', 'close', 'volume']

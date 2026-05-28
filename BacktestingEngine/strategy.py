@@ -6,6 +6,9 @@
 # we will not track money, positions, or execute trades here
 # ONLY generate signals
 import pandas as pd
+from logging_config import get_logger
+
+logger = get_logger(__name__)
 
 class Strategy:
     # we will create a constructor for the strategy class that takes in the parameters for the strategy, such as the fast and slow window for the moving average crossover strategy
@@ -15,6 +18,11 @@ class Strategy:
 
     # this function will take in the cleaned data and generate the signals based on the strategy parameters
     def generate_signals(self, data):
+        logger.info(
+            "Generating signals with fast_window=%s slow_window=%s",
+            self.fast_window,
+            self.slow_window,
+        )
         # we will populate signal with all 0s so we dont need to calculations for hold signals, we will only update the buy/sell signals
         signal = pd.Series(0, index=data.index)
         # we will use a simple moving average crossover strategy for demonstration
@@ -25,4 +33,9 @@ class Strategy:
         # now we will compare the fast and slow to determine what the current signal should be
         signal[fast > slow] = 1
         signal[fast < slow] = -1
+        logger.info(
+            "Generated %s buy signals and %s sell signals",
+            int((signal == 1).sum()),
+            int((signal == -1).sum()),
+        )
         return signal
