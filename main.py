@@ -16,21 +16,37 @@ if __name__ == "__main__":
 
     logger.info("Starting backtesting workflow for %s from %s to %s", ticker, start_date, end_date)
 
-    # load data
-    raw_data = load_data(ticker, start_date, end_date)
+    try:
+        # load data
+        raw_data = load_data(ticker, start_date, end_date)
 
-    # clean data
-    cleaned_data = clean_data(raw_data)
+        # clean data
+        cleaned_data = clean_data(raw_data)
 
-    # store data
-    store_data(cleaned_data, ticker)
+        # store data
+        store_data(cleaned_data, ticker)
 
-    # strategy object
-    strategy = Strategy()
-    signals = strategy.generate_signals(cleaned_data)
-    logger.info("Generated %s non-zero signals", int((signals != 0).sum()))
+        # strategy object
+        strategy = Strategy()
+        signals = strategy.generate_signals(cleaned_data)
+        logger.info("Generated %s non-zero signals", int((signals != 0).sum()))
 
-    # run backtest
-    backtest_engine = BacktestEngine()
-    portfolio_value = backtest_engine.run_backtest(cleaned_data, signals)
-    logger.info("Backtest complete. Final portfolio value: %s", portfolio_value[-1] if portfolio_value else None)
+        # run backtest and get performance metrics
+        backtest_engine = BacktestEngine(initial_cash=100000)
+        metrics = backtest_engine.run_backtest(cleaned_data, signals)
+        
+        # Display comprehensive performance metrics
+        logger.info("Backtest complete. Performance metrics:")
+        logger.info("Total Return: %.2f%%", metrics.total_return * 100)
+        logger.info("Sharpe Ratio: %.2f", metrics.sharpe_ratio)
+        logger.info("Max Drawdown: %.2f%%", metrics.max_drawdown * 100)
+        logger.info("Win Rate: %.2f%%", metrics.win_rate * 100 if metrics.win_rate else 0)
+        logger.info("Profit Factor: %.2f", metrics.profit_factor)
+        logger.info("Total Trades: %s", len(metrics.trades))
+        
+        # Print summary to console
+        print(metrics.summary())
+    
+    except Exception as e:
+        logger.error("Backtesting workflow failed: %s", str(e), exc_info=True)
+        raise
