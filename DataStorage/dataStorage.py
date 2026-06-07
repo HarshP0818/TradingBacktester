@@ -49,6 +49,38 @@ def store_data(data, ticker):
                         PRIMARY KEY (date, ticker)
                     )
                 """)
+                
+                # Create indexes for query optimization
+                # Index on ticker for fast lookups of specific stocks
+                cur.execute("""
+                    CREATE INDEX IF NOT EXISTS idx_stock_prices_ticker 
+                    ON stock_prices(ticker)
+                """)
+                logger.info("Created index: idx_stock_prices_ticker")
+                
+                # Index on date for range queries and time-based analysis
+                cur.execute("""
+                    CREATE INDEX IF NOT EXISTS idx_stock_prices_date 
+                    ON stock_prices(date)
+                """)
+                logger.info("Created index: idx_stock_prices_date")
+                
+                # Composite index on (ticker, date) for efficient lookups of
+                # specific ticker within date ranges
+                cur.execute("""
+                    CREATE INDEX IF NOT EXISTS idx_stock_prices_ticker_date 
+                    ON stock_prices(ticker, date)
+                """)
+                logger.info("Created index: idx_stock_prices_ticker_date")
+                
+                # Composite index on (date, ticker) for time-series queries
+                # across all tickers within a date range
+                cur.execute("""
+                    CREATE INDEX IF NOT EXISTS idx_stock_prices_date_ticker 
+                    ON stock_prices(date, ticker)
+                """)
+                logger.info("Created index: idx_stock_prices_date_ticker")
+                
             # use execute values to batch insert data for performance
                 execute_values(cur, """
                     INSERT INTO stock_prices (date, open, high, low, close, volume, ticker)
@@ -56,6 +88,9 @@ def store_data(data, ticker):
                     ON CONFLICT (date, ticker) DO NOTHING
                 """, data_tuples)
             logger.info("Stored %s rows for %s", len(data), ticker)
-    except Exception:
-        logger.exception("Error storing data for %s", ticker)
-        raise
+    except Exception as e:
+        logger.warning(
+            "Database storage failed for %s (continuing without storage): %s",
+            ticker,
+            str(e)
+        )

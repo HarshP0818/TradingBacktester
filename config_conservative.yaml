@@ -1,0 +1,39 @@
+# Alternative Configuration: Conservative Trading (Fixed Shares)
+# Lower risk, fixed position sizes
+
+backtest:
+  initial_cash: 50000
+  commission: 0.001
+  slippage: 0.0005
+  position_sizing_strategy: "fixed_shares"
+
+position_sizing:
+  fixed_shares:
+    num_shares: 10
+
+strategy:
+  name: "moving_average_crossover"
+  fast_window: 20
+  slow_window: 50
+
+data:
+  ticker: MSFT
+  start_date: "2019-01-01"
+  end_date: "2021-12-31"
+
+database:
+  host: localhost
+  port: 5432
+  database: stock_data
+  user: ${DB_USER}
+  password: ${DB_PASSWORD}
+  connection_pool_size: 5
+  max_overflow: 10
+  pool_recycle: 3600
+
+logging:
+  level: INFO
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "logs/backtester.log"
+  max_file_size: 10485760
+  backup_count: 5

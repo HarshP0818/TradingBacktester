@@ -1,0 +1,57 @@
+# Backtesting Configuration File
+# All magic numbers and parameters are defined here for easy modification
+
+backtest:
+  initial_cash: 100000
+  commission: 0.001  # 0.1% commission per trade
+  slippage: 0.0005   # 0.05% slippage
+  position_sizing_strategy: "fixed_percentage"  # Options: fixed_percentage, kelly_criterion, fixed_shares
+  risk_percent_per_trade: 0.02  # Risk 2% of account per trade
+
+position_sizing:
+  fixed_percentage:
+    risk_percent: 0.02  # Risk 2% per trade
+  kelly_criterion:
+    use_kelly: true
+    kelly_fraction: 0.25  # Use 1/4 Kelly for safety
+  fixed_shares:
+    num_shares: 1
+
+strategy:
+  name: "moving_average_crossover"  # Strategy to use
+  fast_window: 20
+  slow_window: 50
+  # Additional strategies can be added here:
+  # momentum:
+  #   lookback_period: 20
+  #   threshold: 0.05
+  # mean_reversion:
+  #   lookback_period: 30
+  #   std_dev_threshold: 2.0
+
+data:
+  ticker: AAPL
+  start_date: "2020-01-01"
+  end_date: "2021-01-01"
+  # Multiple tickers for future batch processing:
+  # tickers:
+  #   - AAPL
+  #   - MSFT
+  #   - GOOGL
+
+database:
+  host: localhost
+  port: 5432
+  database: stock_data
+  user: ${DB_USER}  # From environment variable
+  password: ${DB_PASSWORD}  # From environment variable
+  connection_pool_size: 5
+  max_overflow: 10
+  pool_recycle: 3600  # Recycle connections after 1 hour
+
+logging:
+  level: INFO  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "logs/backtester.log"
+  max_file_size: 10485760  # 10MB
+  backup_count: 5

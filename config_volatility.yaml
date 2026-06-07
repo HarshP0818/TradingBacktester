@@ -1,0 +1,40 @@
+# Configuration: Volatility-Adjusted Position Sizing
+# Adapts position sizes based on market volatility
+
+backtest:
+  initial_cash: 100000
+  commission: 0.001
+  slippage: 0.0005
+  position_sizing_strategy: "volatility_adjusted"
+
+position_sizing:
+  volatility_adjusted:
+    base_percent: 0.02  # 2% risk when volatility is at target
+    target_volatility: 0.015  # 1.5% daily volatility (target regime)
+
+strategy:
+  name: "moving_average_crossover"
+  fast_window: 20
+  slow_window: 50
+
+data:
+  ticker: TSLA
+  start_date: "2019-06-01"
+  end_date: "2021-12-31"
+
+database:
+  host: localhost
+  port: 5432
+  database: stock_data
+  user: ${DB_USER}
+  password: ${DB_PASSWORD}
+  connection_pool_size: 5
+  max_overflow: 10
+  pool_recycle: 3600
+
+logging:
+  level: INFO
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "logs/backtester_vol.log"
+  max_file_size: 10485760
+  backup_count: 5

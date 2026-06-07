@@ -34,13 +34,15 @@ class PerformanceMetrics:
         self.portfolio_values = np.array(portfolio_values)
         self.trades = trades or []
         
+        # Calculate cumulative returns first (needed for other metrics)
+        self.cumulative_returns = self._calc_cumulative_returns()
+        
         # Calculate metrics
         self.total_return = self._calc_total_return()
         self.sharpe_ratio = self._calc_sharpe_ratio()
         self.max_drawdown = self._calc_max_drawdown()
         self.win_rate = self._calc_win_rate()
         self.profit_factor = self._calc_profit_factor()
-        self.cumulative_returns = self._calc_cumulative_returns()
         
         logger.info(
             "Performance metrics calculated: "
